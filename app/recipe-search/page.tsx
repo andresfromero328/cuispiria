@@ -6,7 +6,7 @@ import {
   RecipeSearchQuery,
   RecipeSearchState,
   SpoonacularRecipes,
-} from "@/lib/types/recipe-search";
+} from "@/types/recipeTypes";
 import { SPOONACULAR_ROOT_URL_COMPLEX_SEARCH } from "@/lib/spoonacularRootURL";
 
 export async function fetchRecipesForQuery(query: string, offset: number) {
@@ -51,6 +51,7 @@ export async function fetchRecipesForQuery(query: string, offset: number) {
     image: recipe.image,
     readyInMinutes: recipe.readyInMinutes,
     healthScore: recipe.healthScore,
+    aggregateLikes: recipe.aggregateLikes,
     dishTypes: recipe.dishTypes,
   }));
 

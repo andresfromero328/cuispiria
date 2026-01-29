@@ -1,5 +1,5 @@
 import RecipeOverview from "@/components/shared/RecipeOverview";
-import { RecipeSearchState } from "@/lib/types/recipe-search";
+import { RecipeSearchState } from "@/types/recipeTypes";
 
 interface Props {
   isPending: boolean;

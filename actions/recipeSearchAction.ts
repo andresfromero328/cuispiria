@@ -5,7 +5,7 @@ import {
   RecipeSearchQuery,
   RecipeSearchState,
   SpoonacularRecipes,
-} from "@/lib/types/recipe-search";
+} from "@/types/recipeTypes";
 
 function mapStatusToMessage(status: number): string {
   switch (status) {
@@ -88,6 +88,7 @@ export const recipeSearchAction = async (
       image: recipe.image,
       readyInMinutes: recipe.readyInMinutes,
       healthScore: recipe.healthScore,
+      aggregateLikes: recipe.aggregateLikes,
       dishTypes: recipe.dishTypes,
     }));
 

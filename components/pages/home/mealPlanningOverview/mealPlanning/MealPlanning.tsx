@@ -16,7 +16,13 @@ const MealPlanning = ({ meals }: Props) => {
 
       {meals!.length > 0 ? (
         <>
-          <MacroPieChart />
+          <MacroPieChart
+            macros={{
+              percentProtein: 21.5,
+              percentCarbs: 14.4,
+              percentFat: 64.1,
+            }}
+          />
           <MealPlanningTable />
         </>
       ) : (

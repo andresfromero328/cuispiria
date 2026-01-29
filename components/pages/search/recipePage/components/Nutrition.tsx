@@ -1,0 +1,129 @@
+import React from "react";
+import SectionCard from "../helpers/SectionCard";
+import { Nutrition as NutritionType } from "@/types/recipeTypes";
+import { auth } from "@/auth";
+import PremiumLock from "@/components/shared/PremiumLock";
+import MacroPieChart from "@/components/pages/home/mealPlanningOverview/mealPlanning/MacroPieChart";
+import NutritionExpandable from "./NutritionalExpandable";
+
+interface Props {
+  nutritionInfo: NutritionType;
+}
+
+function pickNutrient(
+  nutrition: NutritionType | undefined,
+  name: "Calories" | "Protein" | "Carbohydrates" | "Fat",
+) {
+  return nutrition?.nutrients?.find((n) => n.name === name);
+}
+
+const Nutrition = async ({ nutritionInfo }: Props) => {
+  const cal = pickNutrient(nutritionInfo, "Calories");
+  const protein = pickNutrient(nutritionInfo, "Protein");
+  const carbs = pickNutrient(nutritionInfo, "Carbohydrates");
+  const fat = pickNutrient(nutritionInfo, "Fat");
+
+  const session = await auth();
+  return (
+    <SectionCard title="Nutrition">
+      {(nutritionInfo?.nutrients?.length ?? 0) > 0 ? (
+        <div className="space-y-3">
+          {/* Tier 1: quick glance (5–6 items) */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-md border bg-background p-3">
+              <small>Calories</small>
+              <p className="text-sm font-semibold">
+                {cal ? `${Math.round(cal.amount)} ${cal.unit}` : "—"}
+              </p>
+            </div>
+
+            <div className="rounded-md border bg-background p-3">
+              <small>Protein</small>
+              <p className="text-sm font-semibold">
+                {protein ? `${Math.round(protein.amount)}${protein.unit}` : "—"}
+              </p>
+            </div>
+
+            <div className="rounded-md border bg-background p-3">
+              <small>Carbs</small>
+              <p className="text-sm font-semibold">
+                {carbs ? `${Math.round(carbs.amount)}${carbs.unit}` : "—"}
+              </p>
+            </div>
+
+            <div className="rounded-md border bg-background p-3">
+              <small>Fat</small>
+              <p className="text-sm font-semibold">
+                {fat ? `${Math.round(fat.amount)}${fat.unit}` : "—"}
+              </p>
+            </div>
+
+            {/* Add Fiber + Sodium as Tier 1 (recommended) */}
+            {(() => {
+              const fiber =
+                nutritionInfo?.nutrients?.find((n) => n.name === "Fiber") ??
+                null;
+              return (
+                <div className="rounded-md border bg-background p-3">
+                  <small>Fiber</small>
+                  <p className="text-sm font-semibold">
+                    {fiber ? `${Math.round(fiber.amount)}${fiber.unit}` : "—"}
+                  </p>
+                </div>
+              );
+            })()}
+
+            {(() => {
+              const sodium =
+                nutritionInfo?.nutrients?.find((n) => n.name === "Sodium") ??
+                null;
+              return (
+                <div className="rounded-md border bg-background p-3">
+                  <small>Sodium</small>
+                  <p className="text-sm font-semibold">
+                    {sodium
+                      ? `${Math.round(sodium.amount)}${sodium.unit}`
+                      : "—"}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Tier 1.5: breakdown (optional) */}
+          {nutritionInfo?.caloricBreakdown ? (
+            <div className="rounded-md border bg-background p-3">
+              <p className="font-semibold">Caloric breakdown</p>
+              <MacroPieChart macros={nutritionInfo.caloricBreakdown} />
+              <div className="text-center">
+                <small className="text-center ">
+                  {Math.round(nutritionInfo.caloricBreakdown.percentProtein)}%
+                  protein •{" "}
+                  {Math.round(nutritionInfo.caloricBreakdown.percentCarbs)}%
+                  carbs •{" "}
+                  {Math.round(nutritionInfo.caloricBreakdown.percentFat)}% fat
+                </small>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Tier 2 / Tier 3 access */}
+          {session ? (
+            <NutritionExpandable nutrients={nutritionInfo.nutrients ?? []} />
+          ) : (
+            <PremiumLock label="Advanced nutrition" />
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Nutrition info not available.
+          </p>
+          <PremiumLock label="Advanced nutrition" />
+        </div>
+      )}
+    </SectionCard>
+  );
+};
+
+export default Nutrition;

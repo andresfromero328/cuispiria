@@ -2,7 +2,7 @@
 
 import { Search, X } from "lucide-react";
 import { Input } from "../ui/input";
-import { RecipeSearchState } from "@/lib/types/recipe-search";
+import { RecipeSearchState } from "@/types/recipeTypes";
 
 interface Props {
   action: (formData: FormData) => void;

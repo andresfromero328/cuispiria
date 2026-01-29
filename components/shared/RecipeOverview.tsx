@@ -1,4 +1,4 @@
-import { RecipeSearchQuery } from "@/lib/types/recipe-search";
+import { RecipeSearchQuery } from "@/types/recipeTypes";
 import { Clock, CookingPot, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -54,7 +54,7 @@ const RecipeOverview = ({ recipe }: Props) => {
           </div>
           <div className="flex items-center gap-2">
             <Star size={14} />
-            <small>{recipe.healthScore}</small>
+            <small>{recipe.aggregateLikes}</small>
           </div>
         </div>
 

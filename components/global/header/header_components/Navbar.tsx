@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 interface Props {
   session: Session | null;
 }
 
 const Navbar = ({ session }: Props) => {
+  const pathname = usePathname();
   return (
     <div className="hidden items-center gap-8 md:flex">
       {navLinks.map((link) => (
@@ -34,7 +36,7 @@ const Navbar = ({ session }: Props) => {
         <Button
           onClick={() =>
             signIn("google", {
-              callbackUrl: "/",
+              callbackUrl: pathname,
               redirect: true,
             })
           }

@@ -4,7 +4,7 @@ import RecipeSearchForm from "@/components/forms/RecipeSearchForm";
 import React, { useActionState, useEffect } from "react";
 import SearchedRecipesList from "./SearchedRecipesList";
 import { recipeSearchAction } from "@/actions/recipeSearchAction";
-import { RecipeSearchState } from "@/lib/types/recipe-search";
+import { RecipeSearchState } from "@/types/recipeTypes";
 import { useRouter } from "next/navigation";
 
 interface Props {
