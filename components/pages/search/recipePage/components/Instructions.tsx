@@ -6,17 +6,18 @@ interface Props {
 }
 
 const Instructions = ({ instructions }: Props) => {
-  const steps = instructions!
-    .replace(/<\/?[^>]+(>|$)/g, "")
-    .split(".")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const steps =
+    instructions
+      ?.replace(/<\/?[^>]+(>|$)/g, "")
+      .split(".")
+      .map((s) => s.trim())
+      .filter(Boolean) || undefined;
 
   return (
     <SectionCard title="Instructions">
       {instructions ? (
         <ul className="list-disc space-y-2 pl-5">
-          {steps.map((step, i) => (
+          {steps!.map((step, i) => (
             <li key={i} className="text-sm leading-relaxed">
               {step.endsWith(".") ? step : `${step}.`}
             </li>

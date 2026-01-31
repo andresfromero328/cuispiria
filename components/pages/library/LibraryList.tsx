@@ -3,16 +3,14 @@ import { Plus, Search } from "lucide-react";
 import React from "react";
 import SectionHeader from "./SectionHeader";
 import RecipeGrid from "./RecipeGrid";
-import { RecipePreview } from "@/app/library/page";
+import { SavedRecipeType } from "@/types/recipeTypes";
 
 interface Props {
-  recipes: RecipePreview[];
+  saved: SavedRecipeType[];
+  custom: SavedRecipeType[];
 }
 
-const LibraryList = ({ recipes }: Props) => {
-  const saved = recipes.filter((r) => r.source === "saved");
-  const custom = recipes.filter((r) => r.source === "custom");
-
+const LibraryList = ({ saved, custom }: Props) => {
   return (
     <section className="flex flex-col gap-5 px-4 py-2">
       <div className="flex flex-col md:flex-row gap-2">
@@ -36,23 +34,14 @@ const LibraryList = ({ recipes }: Props) => {
               <option value="prep">Prep time</option>
             </select>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button className="btn bg-calendar-btn">
-              <Plus size={18} />
-              <span className="ml-2 hidden sm:inline">Add Recipe</span>
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* Saved section */}
       <div className="flex flex-col gap-3">
         <SectionHeader title="Saved Recipes" count={saved.length} />
         <RecipeGrid items={saved} />
       </div>
 
-      {/* Custom section */}
       <div className="flex flex-col gap-3">
         <SectionHeader
           title="Custom Recipes"

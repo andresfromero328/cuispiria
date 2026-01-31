@@ -12,6 +12,8 @@ import { HeartPulse } from "lucide-react";
 import Ingredients from "@/components/pages/search/recipePage/components/Ingredients";
 import Instructions from "@/components/pages/search/recipePage/components/Instructions";
 import { auth } from "@/auth";
+import { SavedRecipe } from "@/models/models";
+import { connectDB } from "@/lib/database/mongodb";
 
 function mapStatusToMessage(status: number): string {
   switch (status) {
@@ -57,12 +59,11 @@ const getData = async (id: string) => {
       recipeId,
       body: body.slice(0, 400),
     });
-
-    // throw here so you can use error boundaries or `notFound()`
     throw new Error(mapStatusToMessage(res.status));
   }
 
   const recipe: SpoonacularRecipeInfo = await res.json();
+
   return {
     id: recipe.id,
     title: recipe.title,
@@ -90,8 +91,7 @@ const getData = async (id: string) => {
 
 function upgradeSpoonacularImage(url?: string) {
   if (!url) return url;
-  return url.replace(/-\d+x\d+(?=\.\w+$)/, "-636x393"); // bigger common size
-  // or try: "-312x231", "-480x360", "-636x393"
+  return url.replace(/-\d+x\d+(?=\.\w+$)/, "-636x393");
 }
 
 function RecipeImage({ src, alt }: { src?: string; alt: string }) {
@@ -120,16 +120,32 @@ function RecipeImage({ src, alt }: { src?: string; alt: string }) {
   );
 }
 
+async function isRecipeSaved(recipeID: number, userID: string | undefined) {
+  if (!recipeID || !userID) return false;
+  await connectDB();
+  const saved = await SavedRecipe.findOne({
+    userID,
+    recipeID,
+  }).lean();
+
+  return Boolean(saved);
+}
+
 const RecipePage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   const recipe = await getData(id);
   const image = upgradeSpoonacularImage(recipe.image);
   const session = await auth();
+  const isSaved = await isRecipeSaved(Number(id), session?.userID);
 
   return (
     <main className="w-full max-w-7xl mx-auto flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-5">
       {/* Top bar / breadcrumbs */}
-      <RecipeHandles userID={session?.userID} recipe={recipe} />
+      <RecipeHandles
+        userID={session?.userID}
+        recipe={recipe}
+        isSaved={isSaved}
+      />
 
       {/* Title + meta */}
       <header className="space-y-3">

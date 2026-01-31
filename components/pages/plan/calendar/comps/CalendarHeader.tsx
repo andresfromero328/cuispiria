@@ -1,14 +1,8 @@
-import {
-  addDays,
-  endOfWeek,
-  startOfWeek,
-  toDateISO,
-} from "@/lib/calendar/helpers";
-import React, { useMemo } from "react";
+import { addDays, endOfWeek, startOfWeek } from "@/lib/calendar/helpers";
 import MonthViewControl from "./MonthViewControl";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import WeekAddMealPopOver from "./WeekAddMealPopOver";
+// import WeekAddMealPopOver from "./WeekAddMealPopOver";
 
 type CalendarView = "month" | "week" | "day";
 
@@ -17,7 +11,7 @@ interface Props {
   activeDate: Date;
   onChangeActiveDate: React.Dispatch<React.SetStateAction<Date>>;
   onChangeView: (v: CalendarView) => void;
-  onAddMeal: (dateISO: string, time24h: string) => void;
+  onAddMeal: (dateISO: Date, time24h: string) => void;
 }
 
 function formatMonthYear(d: Date) {
@@ -52,19 +46,14 @@ const CalendarHeader = ({
   activeDate,
   onChangeActiveDate,
   onChangeView,
-  onAddMeal,
+  // onAddMeal,
 }: Props) => {
   const title =
     view === "month"
       ? formatMonthYear(activeDate)
       : view === "week"
-      ? formatWeekRange(activeDate)
-      : formatDayTitle(activeDate);
-  const weekStart = startOfWeek(activeDate);
-  const weekDays = useMemo(
-    () => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)),
-    [weekStart]
-  );
+        ? formatWeekRange(activeDate)
+        : formatDayTitle(activeDate);
 
   function goPrev() {
     onChangeActiveDate((d) => {
@@ -109,13 +98,12 @@ const CalendarHeader = ({
 
         <MonthViewControl value={view} onChange={onChangeView} />
       </div>
-      <div className="border bg-background shadow-sm px-4 py-2">
+      {/* <div className="border bg-background shadow-sm px-4 py-2">
         <WeekAddMealPopOver
-          weekDays={weekDays}
-          defaultDayISO={toDateISO(activeDate)}
+          defaultDayISO={activeDate}
           onAdd={(dateISO, time24h) => onAddMeal(dateISO, time24h)}
         />
-      </div>
+      </div> */}
     </div>
   );
 };

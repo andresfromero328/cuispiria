@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteLibraryRecipe } from "@/actions/deleteRecipeAction";
 import { saveRecipeAction } from "@/actions/saveRecipeAction";
 import { SpoonacularRecipeInfo } from "@/types/recipeTypes";
 import React from "react";
@@ -7,11 +8,16 @@ import React from "react";
 interface Props {
   recipe: SpoonacularRecipeInfo;
   userID: string | undefined;
+  isSaved: boolean;
 }
 
-const RecipeHandles = ({ userID, recipe }: Props) => {
+const RecipeHandles = ({ userID, recipe, isSaved }: Props) => {
   const handleSaveRecipe = async () => {
-    if (userID && recipe) await saveRecipeAction({ userID, recipe });
+    if (userID && recipe) {
+      if (isSaved) {
+        await deleteLibraryRecipe({ userID, savedRecipeId: recipe.id });
+      } else await saveRecipeAction({ userID, recipe });
+    }
   };
 
   return (
@@ -21,7 +27,7 @@ const RecipeHandles = ({ userID, recipe }: Props) => {
           onClick={async () => handleSaveRecipe()}
           className="btn btn-secondary"
         >
-          Save
+          {isSaved ? "Remove" : "Save"}
         </button>
         <button className="btn btn-primary">Add to Plan</button>
       </div>

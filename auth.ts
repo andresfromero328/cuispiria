@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { connectDB } from "./lib/database/mongodb";
-import { User } from "@/models/User";
+import { User } from "@/models/models";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [

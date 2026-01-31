@@ -1,4 +1,4 @@
-export interface RecipeSearchQuery {
+export interface RecipeOverviewCard {
   id: string;
   title: string;
   image?: string;
@@ -11,7 +11,7 @@ export interface RecipeSearchQuery {
 export interface RecipeSearchState {
   status: "idle" | "searching" | "done" | "error";
   query: string;
-  result: RecipeSearchQuery[];
+  result: RecipeOverviewCard[];
   error?: string;
   offset?: number;
   totalResults?: number;
@@ -27,7 +27,7 @@ export const initialState: RecipeSearchState = {
 };
 
 export interface SpoonacularRecipes {
-  results: RecipeSearchQuery[];
+  results: RecipeOverviewCard[];
   offset: number;
   number: number;
   totalResults: number;
@@ -79,6 +79,18 @@ export interface Ingredients {
   original: string;
   amount?: number;
   unit?: string;
+  measures: {
+    us: {
+      amount: number;
+      unitShort: string;
+      unitLong: string;
+    };
+    metric: {
+      amount: number;
+      unitShort: string;
+      unitLong: string;
+    };
+  };
 }
 
 export interface SpoonacularRecipeInfo {
@@ -99,4 +111,25 @@ export interface SpoonacularRecipeInfo {
   winePairing?: WinePairing;
   extendedIngredients?: Array<Ingredients> | undefined;
   nutrition?: Nutrition;
+}
+
+export interface SavedRecipeType {
+  userID: string;
+  recipeID: number;
+  image?: string | null;
+  title: string;
+  readyInMinutes: number;
+  dishTypes?: string[];
+  aggregateLikes: number;
+  healthScore: number;
+  type: "saved" | "custom";
+  macros: {
+    protein: number;
+    carbs: number;
+    fat: number;
+    calories: number;
+  };
+  ingredients: Ingredients[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }

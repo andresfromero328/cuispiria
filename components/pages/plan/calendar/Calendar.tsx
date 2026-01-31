@@ -4,7 +4,7 @@ import MonthView from "./views/MonthView";
 import WeekView from "./views/WeekView";
 import DayView from "./views/DayView";
 import CalendarHeader from "./comps/CalendarHeader";
-import {groupMealsByDate, safeId, toDateISO } from "@/lib/calendar/helpers";
+import { groupMealsByDate, toDateISO } from "@/lib/calendar/helpers";
 import GrocerySummary from "./GrocerySummary";
 
 export type CalendarView = "month" | "week" | "day";
@@ -27,7 +27,7 @@ export type MealType =
 export type Ingredient = {
   name: string;
   amount: number;
-  unit: string; // keep as string for flexibility (g, cup, tbsp, etc.)
+  unit: string;
 };
 
 export type IngredientUnit =
@@ -47,13 +47,11 @@ export type IngredientUnit =
 
 export type Meal = {
   id: string;
-
-  // Baseline overview fields
   title: string;
   imageUrl?: string | null;
   description?: string;
-  dateISO: string; // "YYYY-MM-DD"
-  time24h: string; // "HH:mm" (required)
+  dateISO: string;
+  time24h: string;
   prepMinutes: number;
   type: MealType;
   ingredients?: Ingredient[];
@@ -81,27 +79,8 @@ export function Calendar({ meals }: { meals: Meal[] }) {
     setView("day");
   }
 
-  // Internal actions (no callbacks required)
-  function addMeal(dateISO: string, time24h: string) {
-    const title = "New meal";
-    const newMeal: Meal = {
-      id: safeId(),
-      title,
-      imageUrl: null,
-      dateISO,
-      time24h,
-      prepMinutes: 10,
-      type: "Other",
-      macros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-      source: "custom",
-    };
-
-    setLocalMeals((prev) => {
-      const next = [...prev, newMeal];
-      return next.sort((a, b) =>
-        (a.dateISO + a.time24h).localeCompare(b.dateISO + b.time24h)
-      );
-    });
+  function addMeal(dateISO: Date, time24h: string) {
+    console.log("adding meal to plan", dateISO, time24h);
   }
 
   function editMeal(mealId: string) {
@@ -114,42 +93,42 @@ export function Calendar({ meals }: { meals: Meal[] }) {
 
   return (
     <>
-    <section className="w-full flex flex-col gap-4">
-      <CalendarHeader
-        view={view}
-        activeDate={activeDate}
-        onChangeActiveDate={setActiveDate}
-        onChangeView={setView}
-        onAddMeal={addMeal}
+      <section className="w-full flex flex-col gap-4">
+        <CalendarHeader
+          view={view}
+          activeDate={activeDate}
+          onChangeActiveDate={setActiveDate}
+          onChangeView={setView}
+          onAddMeal={addMeal}
         />
 
-      {view === "month" ? (
-        <MonthView
-        activeDate={activeDate}
-        onPickDay={pickDay}
-        mealsByDate={mealsByDate}
-        />
-      ) : view === "week" ? (
-        <WeekView
-        activeDate={activeDate}
-        onPickDay={pickDay}
-        mealsByDate={mealsByDate}
-        onEditMeal={editMeal}
-        onRemoveMeal={removeMeal}
-        />
-      ) : (
-        <DayView
-        activeDate={activeDate}
-        meals={dayMeals}
-        onEditMeal={editMeal}
-        onRemoveMeal={removeMeal}
-        />
-      )}
-    </section>
-      
-    <section>
-      <GrocerySummary view={view} activeDate={activeDate} meals={meals} />
-    </section>
+        {view === "month" ? (
+          <MonthView
+            activeDate={activeDate}
+            onPickDay={pickDay}
+            mealsByDate={mealsByDate}
+          />
+        ) : view === "week" ? (
+          <WeekView
+            activeDate={activeDate}
+            onPickDay={pickDay}
+            mealsByDate={mealsByDate}
+            onEditMeal={editMeal}
+            onRemoveMeal={removeMeal}
+          />
+        ) : (
+          <DayView
+            activeDate={activeDate}
+            meals={dayMeals}
+            onEditMeal={editMeal}
+            onRemoveMeal={removeMeal}
+          />
+        )}
+      </section>
+
+      <section>
+        <GrocerySummary view={view} activeDate={activeDate} meals={meals} />
+      </section>
     </>
   );
 }

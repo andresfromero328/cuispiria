@@ -1,11 +1,11 @@
 "use client";
 
-import RecipeSearchForm from "@/components/forms/RecipeSearchForm";
 import React, { useActionState, useEffect } from "react";
-import SearchedRecipesList from "./SearchedRecipesList";
+import { useRouter } from "next/navigation";
 import { recipeSearchAction } from "@/actions/recipeSearchAction";
 import { RecipeSearchState } from "@/types/recipeTypes";
-import { useRouter } from "next/navigation";
+import RecipeSearchForm from "@/components/forms/RecipeSearchForm";
+import SearchedRecipesList from "./SearchedRecipesList";
 
 interface Props {
   preloaded: RecipeSearchState;
@@ -19,20 +19,18 @@ const RecipeSearch = ({ preloaded }: Props) => {
   );
 
   useEffect(() => {
-    if (state.status === "done" || state.status === "error") {
-      const q = state.query.trim();
-      if (!q) {
-        router.replace("/recipe-search", { scroll: false });
-        return;
-      }
-      router.replace(
-        `/recipe-search?q=${encodeURIComponent(q)}&o=${state.offset}`,
-        {
-          scroll: false,
-        },
-      );
+    if (state.status !== "done" && state.status !== "error") return;
+
+    const q = state.query.trim();
+    if (!q) {
+      router.replace("/recipe-search", { scroll: false });
+      return;
     }
-  }, [state.status, state.query, state.offset, router]);
+
+    router.replace(`/recipe-search?q=${encodeURIComponent(q)}`, {
+      scroll: false,
+    });
+  }, [state.status, state.query, router]);
 
   return (
     <>
@@ -41,8 +39,13 @@ const RecipeSearch = ({ preloaded }: Props) => {
         isPending={isPending}
         state={state}
       />
+
       {state.status === "done" && state.result.length > 0 && (
-        <SearchedRecipesList state={state} isPending={isPending} />
+        <SearchedRecipesList
+          state={state}
+          isPending={isPending}
+          action={formAction}
+        />
       )}
     </>
   );

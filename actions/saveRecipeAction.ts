@@ -1,8 +1,9 @@
 "use server";
 
-import { SavedRecipe } from "@/models/User";
+import { SavedRecipe } from "@/models/models";
 import { connectDB } from "@/lib/database/mongodb";
 import type { SpoonacularRecipeInfo } from "@/types/recipeTypes";
+import { revalidateTag } from "next/cache";
 
 type SaveRecipeArgs = {
   userID: string;
@@ -35,14 +36,16 @@ export async function saveRecipeAction({ userID, recipe }: SaveRecipeArgs) {
     userID,
     recipeID: recipe.id,
     type: "saved" as const,
-
     title: recipe.title,
     image: recipe.image ?? "",
-
-    readyInMinutes: recipe.readyInMinutes ?? recipe.preparationMinutes ?? 0,
+    readyInMinutes:
+      recipe.readyInMinutes ??
+      recipe.preparationMinutes ??
+      recipe.cookingMinutes,
     dishTypes: recipe.dishTypes ?? [],
     aggregateLikes: recipe.aggregateLikes ?? 0,
-
+    healthScore: recipe.healthScore,
+    ingredients: recipe.extendedIngredients,
     macros,
   };
 
@@ -52,7 +55,7 @@ export async function saveRecipeAction({ userID, recipe }: SaveRecipeArgs) {
       { $set: doc },
       { new: true, upsert: true, runValidators: true },
     ).lean();
-
+    revalidateTag(`library:${userID}`);
     return { ok: true };
   } catch (err) {
     console.log("SaveRecipeAction:", err);
