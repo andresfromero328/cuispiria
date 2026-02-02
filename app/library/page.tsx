@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { SavedRecipeType } from "@/types/recipeTypes";
 import { getLibraryData } from "@/lib/data/getLibraryData";
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 
 const LibraryPage = async () => {
   const session = await auth();

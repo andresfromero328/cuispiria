@@ -33,8 +33,8 @@ const MacrosSchema = new Schema(
 const IngredientMeasureSchema = new Schema(
   {
     amount: { type: Number, required: true },
-    unitShort: { type: String, required: true, trim: true },
-    unitLong: { type: String, required: true, trim: true },
+    unitShort: { type: String, trim: true },
+    unitLong: { type: String, trim: true },
   },
   { _id: false },
 );

@@ -73,6 +73,19 @@ export interface Nutrition {
     | undefined;
 }
 
+export interface IngredientMeasures {
+  us: {
+    amount: number;
+    unitShort: string;
+    unitLong: string;
+  };
+  metric: {
+    amount: number;
+    unitShort: string;
+    unitLong: string;
+  };
+}
+
 export interface Ingredients {
   id: number;
   name: string;

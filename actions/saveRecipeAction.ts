@@ -2,7 +2,7 @@
 
 import { SavedRecipe } from "@/models/models";
 import { connectDB } from "@/lib/database/mongodb";
-import type { SpoonacularRecipeInfo } from "@/types/recipeTypes";
+import type { Ingredients, SpoonacularRecipeInfo } from "@/types/recipeTypes";
 import { revalidateTag } from "next/cache";
 
 type SaveRecipeArgs = {
@@ -21,6 +21,24 @@ function pickMacros(recipe: SpoonacularRecipeInfo) {
     carbs: getAmount("Carbohydrates"),
     fat: getAmount("Fat"),
     calories: getAmount("Calories"),
+  };
+}
+
+function normalizeIngredient(i: Ingredients) {
+  return {
+    ...i,
+    measures: {
+      us: {
+        ...(i?.measures?.us ?? {}),
+        unitShort: i?.measures?.us?.unitShort ?? "",
+        unitLong: i?.measures?.us?.unitLong ?? "",
+      },
+      metric: {
+        ...(i?.measures?.metric ?? {}),
+        unitShort: i?.measures?.metric?.unitShort ?? "",
+        unitLong: i?.measures?.metric?.unitLong ?? "",
+      },
+    },
   };
 }
 
@@ -45,7 +63,7 @@ export async function saveRecipeAction({ userID, recipe }: SaveRecipeArgs) {
     dishTypes: recipe.dishTypes ?? [],
     aggregateLikes: recipe.aggregateLikes ?? 0,
     healthScore: recipe.healthScore,
-    ingredients: recipe.extendedIngredients,
+    ingredients: (recipe.extendedIngredients ?? []).map(normalizeIngredient),
     macros,
   };
 

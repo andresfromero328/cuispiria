@@ -43,6 +43,6 @@ export async function getLibraryData(userID: string) {
       };
     },
     [`library:${userID}`],
-    { tags: [`library:${userID}`] },
+    { revalidate: 3600, tags: [`library:${userID}`] },
   )();
 }
