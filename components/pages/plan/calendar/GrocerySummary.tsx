@@ -1,12 +1,23 @@
-import React, { useMemo, useState } from 'react'
-import { CalendarView, Ingredient, Meal } from './Calendar';
-import { addDays, startOfWeek, toDateISO } from '@/lib/calendar/helpers';
+import React, { useMemo, useState } from "react";
+import { CalendarView, Meal } from "./Calendar";
+import { addDays, startOfWeek, toDateISO } from "@/lib/calendar/helpers";
+
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
+
+// ✅ Lightweight type for aggregated groceries (NOT the recipe Ingredients type)
+export type GroceryItem = {
+  name: string;
+  amount: number;
+  unit: string;
+};
 
 interface Props {
-    view: CalendarView;
-      activeDate: Date;
-      meals: Meal[];
-      maxItemsPerDay?: number;
+  view: CalendarView;
+  activeDate: Date;
+  meals: Meal[];
+  maxItemsPerDay?: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -127,8 +138,7 @@ function convert(amount: number, fromUnit: string, toUnit: string) {
     return null;
   }
 
-  // Cross-family (approx) to ensure ONE line item per ingredient name.
-  // Treat 1 ml ≈ 1 g.
+  // Cross-family (approx). Treat 1 ml ≈ 1 g.
   if (fromFam === "volume" && toFam === "mass") {
     const ml = amount * VOL_TO_ML[fromUnit];
     const g = ml;
@@ -144,16 +154,30 @@ function convert(amount: number, fromUnit: string, toUnit: string) {
   return null;
 }
 
-export function sumIngredientsSmart(meals: { ingredients?: Ingredient[] | null }[]) {
+function titleCase(s: string) {
+  return s
+    .trim()
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+/**
+ * ✅ Sum ingredients from meals (ingredients live in meal.recipe.ingredients)
+ * Returns a map of "name|unit" -> GroceryItem
+ */
+export function sumIngredientsSmart(meals: Meal[]) {
   const byName: Record<
     string,
     { displayName: string; entries: { amount: number; unit: string }[] }
   > = {};
 
   for (const meal of meals) {
-    for (const ing of meal.ingredients ?? []) {
+    const ingredients = meal.recipe?.ingredients ?? [];
+
+    for (const ing of ingredients ?? []) {
       const nameKey = normalizeName(ing.name);
-      const unit = normalizeUnit(ing.unit);
+      const unit = normalizeUnit(ing.unit ?? "");
       const amount = Number(ing.amount) || 0;
 
       if (!byName[nameKey]) {
@@ -163,7 +187,7 @@ export function sumIngredientsSmart(meals: { ingredients?: Ingredient[] | null }
     }
   }
 
-  const out: Record<string, Ingredient> = {};
+  const out: Record<string, GroceryItem> = {};
 
   for (const [nameKey, bucket] of Object.entries(byName)) {
     const units = bucket.entries.map((e) => e.unit).filter(Boolean);
@@ -173,12 +197,7 @@ export function sumIngredientsSmart(meals: { ingredients?: Ingredient[] | null }
 
     for (const e of bucket.entries) {
       const converted = convert(e.amount, e.unit, best);
-      if (converted == null) {
-        // If it truly can't convert, just keep in best unit as-is (last resort)
-        sumBest += e.amount;
-      } else {
-        sumBest += converted;
-      }
+      sumBest += converted == null ? e.amount : converted;
     }
 
     const key = `${nameKey}|${best}`;
@@ -193,8 +212,8 @@ export function groceriesByDay(meals: Meal[]) {
   const byDate: Record<string, Meal[]> = {};
 
   for (const meal of meals) {
-    if (!byDate[meal.dateISO]) byDate[meal.dateISO] = [];
-    byDate[meal.dateISO].push(meal);
+    if (!byDate[meal.dayISO]) byDate[meal.dayISO] = [];
+    byDate[meal.dayISO].push(meal);
   }
 
   return Object.entries(byDate)
@@ -202,17 +221,9 @@ export function groceriesByDay(meals: Meal[]) {
     .map(([dateISO, dayMeals]) => ({
       dateISO,
       items: Object.values(sumIngredientsSmart(dayMeals)).sort((a, b) =>
-        a.name.localeCompare(b.name)
+        a.name.localeCompare(b.name),
       ),
     }));
-}
-
-function titleCase(s: string) {
-  return s
-    .trim()
-    .split(/\s+/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
 }
 
 export function formatAmount(n: number) {
@@ -241,192 +252,180 @@ export function formatDateHuman(dateISO: string) {
   });
 }
 
-const GrocerySummary = ({ view,
+const GrocerySummary = ({
+  view,
   activeDate,
   meals,
-  maxItemsPerDay = 10, }: Props) => {
-  // Hooks must always be called in the same order — no early returns.
-    const scope = useMemo(() => {
-      const activeISO = toDateISO(activeDate);
-  
-      if (view === "day") {
-        // Day view: just that day (keeps the section crisp and predictable)
-        return {
-          mode: "range" as const,
-          label: "Groceries",
-          subtitle: "For this day",
-          startISO: activeISO,
-          endISO: activeISO,
-        };
-      }
-  
-      if (view === "week") {
-        const start = startOfWeek(activeDate);
-        const startISO = toDateISO(start);
-        const endISO = toDateISO(addDays(start, 6));
-        return {
-          mode: "range" as const,
-          label: "Groceries",
-          subtitle: "This week",
-          startISO,
-          endISO,
-        };
-      }
-  
-      // Month: informational only
+  maxItemsPerDay = 10,
+}: Props) => {
+  const scope = useMemo(() => {
+    const activeISO = toDateISO(activeDate);
+
+    if (view === "day") {
       return {
-        mode: "month" as const,
+        mode: "range" as const,
         label: "Groceries",
-        subtitle: activeDate.toLocaleDateString(undefined, {
-          month: "long",
-          year: "numeric",
-        }),
-        startISO: "",
-        endISO: "",
+        subtitle: "For this day",
+        startISO: activeISO,
+        endISO: activeISO,
       };
-    }, [view, activeDate]);
-  
-    const scopedMeals = useMemo(() => {
-      if (scope.mode !== "range") return [];
-  
-      return meals
-        .filter((m) => m.dateISO >= scope.startISO && m.dateISO <= scope.endISO)
-        .sort((a, b) => {
-          // Sort by day then time if time exists
-          const aKey = `${a.dateISO} ${a.time24h ?? "00:00"}`;
-          const bKey = `${b.dateISO} ${b.time24h ?? "00:00"}`;
-          return aKey.localeCompare(bKey);
-        });
-    }, [meals, scope]);
-  
-    const days = useMemo(() => {
-      if (scope.mode !== "range") return [];
-      return groceriesByDay(scopedMeals);
-    }, [scopedMeals, scope.mode]);
-  
-    // Expand/collapse per-day (keeps week view from becoming huge)
-    const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>(
-      {}
-    );
-  
-    const toggleDay = (dateISO: string) => {
-      setExpandedDates((prev) => ({ ...prev, [dateISO]: !prev[dateISO] }));
+    }
+
+    if (view === "week") {
+      const start = startOfWeek(activeDate);
+      const startISO = toDateISO(start);
+      const endISO = toDateISO(addDays(start, 6));
+      return {
+        mode: "range" as const,
+        label: "Groceries",
+        subtitle: "This week",
+        startISO,
+        endISO,
+      };
+    }
+
+    return {
+      mode: "month" as const,
+      label: "Groceries",
+      subtitle: activeDate.toLocaleDateString(undefined, {
+        month: "long",
+        year: "numeric",
+      }),
+      startISO: "",
+      endISO: "",
     };
-  
-    return (
-      <section className="border bg-background p-3 shadow-sm">
-        {/* Header row */}
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-sm font-semibold">{scope.label}</h3>
-            <p className="text-xs text-muted-foreground">{scope.subtitle}</p>
-          </div>
-  
-          {scope.mode === "range" ? (
-            <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
-              {formatRange(scope.startISO, scope.endISO)}
-            </span>
-          ) : (
-            <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
-              {scope.subtitle}
-            </span>
-          )}
+  }, [view, activeDate]);
+
+  const scopedMeals = useMemo(() => {
+    if (scope.mode !== "range") return [];
+
+    return meals
+      .filter((m) => m.dayISO >= scope.startISO && m.dayISO <= scope.endISO)
+      .sort((a, b) => {
+        const aKey = `${a.dayISO} ${a.time24h ?? "00:00"}`;
+        const bKey = `${b.dayISO} ${b.time24h ?? "00:00"}`;
+        return aKey.localeCompare(bKey);
+      });
+  }, [meals, scope]);
+
+  const days = useMemo(() => {
+    if (scope.mode !== "range") return [];
+    return groceriesByDay(scopedMeals);
+  }, [scopedMeals, scope.mode]);
+
+  const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  const toggleDay = (dateISO: string) => {
+    setExpandedDates((prev) => ({ ...prev, [dateISO]: !prev[dateISO] }));
+  };
+
+  return (
+    <section className="border bg-background p-3 shadow-sm">
+      <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-sm font-semibold">{scope.label}</h3>
+          <p className="text-xs text-muted-foreground">{scope.subtitle}</p>
         </div>
-  
-        {/* Month: informational */}
-        {scope.mode === "month" ? (
-          <div className="mt-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            Switch to day or week view to see ingredients for your planned meals.
-          </div>
-        ) : days.length ? (
-          <div className="mt-3 divide-y divide-foreground/50">
-            {days.map((day) => {
-              const expanded = !!expandedDates[day.dateISO];
-              const visible = expanded
-                ? day.items
-                : day.items.slice(0, maxItemsPerDay);
-              const hiddenCount = Math.max(0, day.items.length - visible.length);
-  
-              return (
-                <div key={day.dateISO} className="py-3">
-                  {/* 3-col row (no wasted gutters) */}
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[140px_1fr_auto] md:items-start">
-                    {/* Day label */}
-                    <div className="flex items-center justify-between md:block">
-                      <div className="text-xs font-semibold text-muted-foreground">
-                        {formatDateHuman(day.dateISO)}
-                      </div>
-  
-                      {/* Mobile toggle inline */}
-                      {day.items.length > maxItemsPerDay ? (
-                        <button
-                          type="button"
-                          className="btn rounded-md px-2 py-1 text-xs hover:bg-primary/15 md:hidden"
-                          onClick={() => toggleDay(day.dateISO)}
-                        >
-                          {expanded ? "Less" : "All"}
-                        </button>
-                      ) : null}
+
+        {scope.mode === "range" ? (
+          <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
+            {formatRange(scope.startISO, scope.endISO)}
+          </span>
+        ) : (
+          <span className="rounded-md border bg-muted px-2 py-1 text-xs text-muted-foreground">
+            {scope.subtitle}
+          </span>
+        )}
+      </div>
+
+      {scope.mode === "month" ? (
+        <div className="mt-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+          Switch to day or week view to see ingredients for your planned meals.
+        </div>
+      ) : days.length ? (
+        <div className="mt-3 divide-y divide-foreground/50">
+          {days.map((day) => {
+            const expanded = !!expandedDates[day.dateISO];
+            const visible = expanded
+              ? day.items
+              : day.items.slice(0, maxItemsPerDay);
+            const hiddenCount = Math.max(0, day.items.length - visible.length);
+
+            return (
+              <div key={day.dateISO} className="py-3">
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-[140px_1fr_auto] md:items-start">
+                  <div className="flex items-center justify-between md:block">
+                    <div className="text-xs font-semibold text-muted-foreground">
+                      {formatDateHuman(day.dateISO)}
                     </div>
-  
-                    {/* Items as wrapping chips (uses space efficiently) */}
-                    <div className="flex flex-wrap gap-2">
-                      {visible.map((ing) => (
-                        <div
-                          key={`${day.dateISO}-${normalizeName(ing.name)}|${normalizeUnit(
-                            ing.unit
-                          )}`}
-                          className={[
-                            "inline-flex items-center gap-2 rounded-md border",
-                            "bg-[oklch(95%_0.02_95)] px-2.5 py-1.5",
-                          ].join(" ")}
-                        >
-                          <span className="text-sm font-medium">{ing.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatAmount(ing.amount)} {ing.unit}
-                          </span>
-                        </div>
-                      ))}
-  
-                      {/* Empty state per day */}
-                      {!visible.length ? (
-                        <div className="rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
-                          No ingredients for this day
-                        </div>
-                      ) : null}
-  
-                      {/* Hidden count (mobile & desktop) */}
-                      {hiddenCount > 0 && !expanded ? (
-                        <span className="inline-flex items-center rounded-md border bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
-                          +{hiddenCount} more
-                        </span>
-                      ) : null}
-                    </div>
-  
-                    {/* Desktop toggle (separate column) */}
+
                     {day.items.length > maxItemsPerDay ? (
                       <button
                         type="button"
-                        className="btn hidden md:inline-flex rounded-md px-2 py-1 text-xs hover:bg-primary/15"
+                        className="btn rounded-md px-2 py-1 text-xs hover:bg-primary/15 md:hidden"
                         onClick={() => toggleDay(day.dateISO)}
                       >
-                        {expanded ? "Show less" : "Show all"}
+                        {expanded ? "Less" : "All"}
                       </button>
-                    ) : (
-                      <span className="hidden md:block" />
-                    )}
+                    ) : null}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="mt-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            No ingredients yet. Add meals with ingredients to build your list.
-          </div>
-        )}
-      </section>
-    );
-}
 
-export default GrocerySummary
+                  <div className="flex flex-wrap gap-2">
+                    {visible.map((ing) => (
+                      <div
+                        key={`${day.dateISO}-${normalizeName(ing.name)}|${normalizeUnit(
+                          ing.unit,
+                        )}`}
+                        className={[
+                          "inline-flex items-center gap-2 rounded-md border",
+                          "bg-[oklch(95%_0.02_95)] px-2.5 py-1.5",
+                        ].join(" ")}
+                      >
+                        <span className="text-sm font-medium">{ing.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatAmount(ing.amount)} {ing.unit}
+                        </span>
+                      </div>
+                    ))}
+
+                    {!visible.length ? (
+                      <div className="rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
+                        No ingredients for this day
+                      </div>
+                    ) : null}
+
+                    {hiddenCount > 0 && !expanded ? (
+                      <span className="inline-flex items-center rounded-md border bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
+                        +{hiddenCount} more
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {day.items.length > maxItemsPerDay ? (
+                    <button
+                      type="button"
+                      className="btn hidden md:inline-flex rounded-md px-2 py-1 text-xs hover:bg-primary/15"
+                      onClick={() => toggleDay(day.dateISO)}
+                    >
+                      {expanded ? "Show less" : "Show all"}
+                    </button>
+                  ) : (
+                    <span className="hidden md:block" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-3 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+          No ingredients yet. Add meals with ingredients to build your list.
+        </div>
+      )}
+    </section>
+  );
+};
+
+export default GrocerySummary;

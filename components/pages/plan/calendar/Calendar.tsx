@@ -76,6 +76,7 @@ export function Calendar({
           library={library}
           onAddMeal={onAddMeal}
         />
+
         {view === "month" ? (
           <MonthView
             activeDate={activeDate}
@@ -101,7 +102,12 @@ export function Calendar({
       </section>
 
       <section>
-        <GrocerySummary view={view} activeDate={activeDate} meals={dayMeals} />
+        {/* ✅ IMPORTANT: pass ALL meals, not just dayMeals */}
+        <GrocerySummary
+          view={view}
+          activeDate={activeDate}
+          meals={localMeals}
+        />
       </section>
     </>
   );
