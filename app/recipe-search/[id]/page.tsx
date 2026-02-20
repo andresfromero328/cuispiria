@@ -137,6 +137,7 @@ const RecipePage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const image = upgradeSpoonacularImage(recipe.image);
   const session = await auth();
   const isSaved = await isRecipeSaved(Number(id), session?.userID);
+
   return (
     <main className="w-full max-w-7xl mx-auto flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-5">
       {/* Top bar / breadcrumbs */}

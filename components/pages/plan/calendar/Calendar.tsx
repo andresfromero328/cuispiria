@@ -1,74 +1,51 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import MonthView from "./views/MonthView";
 import WeekView from "./views/WeekView";
 import DayView from "./views/DayView";
 import CalendarHeader from "./comps/CalendarHeader";
 import { groupMealsByDate, toDateISO } from "@/lib/calendar/helpers";
 import GrocerySummary from "./GrocerySummary";
+import { MealRecipeSnapshot, SavedRecipeType } from "@/types/recipeTypes";
 
 export type CalendarView = "month" | "week" | "day";
 
-export type MacroOverview = {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-};
-
-export type MealType =
-  | "Breakfast"
-  | "Lunch"
-  | "Dinner"
-  | "Snack"
-  | "Dessert"
-  | "Other";
-
-export type Ingredient = {
-  name: string;
-  amount: number;
-  unit: string;
-};
-
-export type IngredientUnit =
-  | "g"
-  | "kg"
-  | "ml"
-  | "l"
-  | "tsp"
-  | "tbsp"
-  | "cup"
-  | "oz"
-  | "lb"
-  | "piece"
-  | "clove"
-  | "slice"
-  | "pinch";
-
-export type Meal = {
+export interface Meal {
   id: string;
-  title: string;
-  imageUrl?: string | null;
-  description?: string;
-  dateISO: string;
+  dayISO: string;
   time24h: string;
-  prepMinutes: number;
-  type: MealType;
-  ingredients?: Ingredient[];
-  instructions?: string[];
-  macros: MacroOverview;
-  source?: "saved" | "custom";
-};
+  dateTime: string;
+  recipe: MealRecipeSnapshot;
+}
 
-export function Calendar({ meals }: { meals: Meal[] }) {
+export interface LibraryData {
+  saved: SavedRecipeType[];
+  custom: SavedRecipeType[];
+}
+
+interface Props {
+  plannedMeals: Meal[];
+  library: LibraryData;
+  onAddMeal: (
+    recipe: SavedRecipeType,
+    date: Date,
+    time24h: string,
+  ) => Promise<void> | void;
+  onRemoveMeal?: (mealId: string) => Promise<void> | void;
+}
+
+export function Calendar({
+  plannedMeals,
+  library,
+  onAddMeal,
+  onRemoveMeal,
+}: Props) {
   const [view, setView] = useState<CalendarView>("month");
   const [activeDate, setActiveDate] = useState<Date>(new Date());
 
-  const [localMeals, setLocalMeals] = useState<Meal[]>(() => meals);
-
-  useEffect(() => {
-    setLocalMeals(meals);
-  }, [meals]);
+  const [localMeals, setLocalMeals] = useState<Meal[]>(() => plannedMeals);
+  useEffect(() => setLocalMeals(plannedMeals), [plannedMeals]);
 
   const mealsByDate = useMemo(() => groupMealsByDate(localMeals), [localMeals]);
   const activeISO = toDateISO(activeDate);
@@ -79,16 +56,13 @@ export function Calendar({ meals }: { meals: Meal[] }) {
     setView("day");
   }
 
-  function addMeal(dateISO: Date, time24h: string) {
-    console.log("adding meal to plan", dateISO, time24h);
-  }
-
   function editMeal(mealId: string) {
     console.log(`edit meal - ${mealId}`);
   }
 
-  function removeMeal(mealId: string) {
-    setLocalMeals((prev) => prev.filter((x) => x.id !== mealId));
+  async function removeMeal(mealId: string) {
+    setLocalMeals((prev) => prev.filter((m) => m.id !== mealId));
+    await onRemoveMeal?.(mealId);
   }
 
   return (
@@ -99,9 +73,9 @@ export function Calendar({ meals }: { meals: Meal[] }) {
           activeDate={activeDate}
           onChangeActiveDate={setActiveDate}
           onChangeView={setView}
-          onAddMeal={addMeal}
+          library={library}
+          onAddMeal={onAddMeal}
         />
-
         {view === "month" ? (
           <MonthView
             activeDate={activeDate}
@@ -127,7 +101,7 @@ export function Calendar({ meals }: { meals: Meal[] }) {
       </section>
 
       <section>
-        <GrocerySummary view={view} activeDate={activeDate} meals={meals} />
+        <GrocerySummary view={view} activeDate={activeDate} meals={dayMeals} />
       </section>
     </>
   );

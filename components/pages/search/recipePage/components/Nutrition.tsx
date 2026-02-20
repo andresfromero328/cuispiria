@@ -17,13 +17,43 @@ function pickNutrient(
   return nutrition?.nutrients?.find((n) => n.name === name);
 }
 
+function toNumber(n: unknown) {
+  const v = typeof n === "number" ? n : Number(n);
+  return Number.isFinite(v) && v >= 0 ? v : 0;
+}
+
+// ✅ Keep consistent with MealPlanning: grams → % of total grams
+function gramsToMacroPercents(proteinG: number, carbsG: number, fatG: number) {
+  const total = proteinG + carbsG + fatG;
+  if (total <= 0) {
+    return { percentProtein: 0, percentCarbs: 0, percentFat: 0 };
+  }
+
+  // match your prior numbers style (can keep decimals; chart accepts numbers)
+  const round1 = (x: number) => Math.round(x * 10) / 10;
+
+  return {
+    percentProtein: round1((proteinG / total) * 100),
+    percentCarbs: round1((carbsG / total) * 100),
+    percentFat: round1((fatG / total) * 100),
+  };
+}
+
 const Nutrition = async ({ nutritionInfo }: Props) => {
   const cal = pickNutrient(nutritionInfo, "Calories");
   const protein = pickNutrient(nutritionInfo, "Protein");
   const carbs = pickNutrient(nutritionInfo, "Carbohydrates");
   const fat = pickNutrient(nutritionInfo, "Fat");
 
+  // ✅ derive macro percents from the same grams you're displaying above
+  const macroPercents = gramsToMacroPercents(
+    toNumber(protein?.amount),
+    toNumber(carbs?.amount),
+    toNumber(fat?.amount),
+  );
+
   const session = await auth();
+
   return (
     <SectionCard title="Nutrition">
       {(nutritionInfo?.nutrients?.length ?? 0) > 0 ? (
@@ -91,21 +121,20 @@ const Nutrition = async ({ nutritionInfo }: Props) => {
           </div>
 
           {/* Tier 1.5: breakdown (optional) */}
-          {nutritionInfo?.caloricBreakdown ? (
-            <div className="rounded-md border bg-background p-3">
-              <p className="font-semibold">Caloric breakdown</p>
-              <MacroPieChart macros={nutritionInfo.caloricBreakdown} />
-              <div className="text-center">
-                <small className="text-center ">
-                  {Math.round(nutritionInfo.caloricBreakdown.percentProtein)}%
-                  protein •{" "}
-                  {Math.round(nutritionInfo.caloricBreakdown.percentCarbs)}%
-                  carbs •{" "}
-                  {Math.round(nutritionInfo.caloricBreakdown.percentFat)}% fat
-                </small>
-              </div>
+          {/* ✅ keep MacroPieChart consistent with MealPlanning: feed grams-based percents */}
+          <div className="rounded-md border bg-background p-3">
+            <p className="font-semibold">Macro breakdown</p>
+
+            <MacroPieChart macros={macroPercents} />
+
+            <div className="text-center">
+              <small className="text-center ">
+                {Math.round(macroPercents.percentProtein)}% protein •{" "}
+                {Math.round(macroPercents.percentCarbs)}% carbs •{" "}
+                {Math.round(macroPercents.percentFat)}% fat
+              </small>
             </div>
-          ) : null}
+          </div>
 
           {/* Tier 2 / Tier 3 access */}
           {session ? (

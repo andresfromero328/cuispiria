@@ -1,5 +1,5 @@
 import React from "react";
-import { Meal } from "../Calendar";
+import type { Meal } from "../Calendar";
 import Image from "next/image";
 
 interface Props {
@@ -11,9 +11,11 @@ interface Props {
   layout?: "stack" | "row";
 }
 
-function formatDateHuman(dateISO: string) {
-  const [y, m, d] = dateISO.split("-").map(Number);
-  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+function formatDateHuman(dayISO?: string) {
+  if (!dayISO) return "—";
+  const [y, m, d] = dayISO.split("-").map(Number);
+  if (!y || !m || !d) return "—";
+  const dt = new Date(y, m - 1, d);
   return dt.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -21,21 +23,24 @@ function formatDateHuman(dateISO: string) {
   });
 }
 
-function formatTimeHuman(time24h: string) {
+function formatTimeHuman(time24h?: string) {
+  if (!time24h) return "—";
   const [hh, mm] = time24h.split(":").map(Number);
+  if (hh == null || mm == null) return "—";
   const dt = new Date();
-  dt.setHours(hh ?? 0, mm ?? 0, 0, 0);
+  dt.setHours(hh, mm, 0, 0);
   return dt.toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
   });
 }
 
-function formatPrep(prepMinutes: number) {
-  if (!Number.isFinite(prepMinutes) || prepMinutes <= 0) return "—";
-  if (prepMinutes < 60) return `${prepMinutes} min`;
-  const h = Math.floor(prepMinutes / 60);
-  const m = prepMinutes % 60;
+function formatPrep(prepMinutes?: number) {
+  if (!Number.isFinite(prepMinutes) || (prepMinutes ?? 0) <= 0) return "—";
+  const p = prepMinutes!;
+  if (p < 60) return `${p} min`;
+  const h = Math.floor(p / 60);
+  const m = p % 60;
   return m ? `${h} hr ${m} min` : `${h} hr`;
 }
 
@@ -63,42 +68,51 @@ function MacroPill({
   );
 }
 
-const MealOverviewCard = ({ meal, density, onEdit, onRemove, showImage = true, layout = "stack" }: Props) => {
+const MealOverviewCard = ({
+  meal,
+  density = "default",
+  onEdit,
+  onRemove,
+  showImage = true,
+  layout = "stack",
+}: Props) => {
   const compact = density === "compact";
   const row = layout === "row";
+
+  const r = meal.recipe; // ✅ snapshot
+  const title = r?.title ?? "Untitled meal";
+  const image = r?.image ?? "";
+  const prep = r?.readyInMinutes ?? 0;
+  const type = r?.type ?? "saved";
+  const dish = r?.dishTypes?.[0] ?? "Unknown";
+  const macros = r?.macros ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
   return (
     <article className="group w-full overflow-hidden rounded-md bg-[oklch(95%_0.02_95)] border border-foreground shadow-sm hover:shadow-md flex flex-col gap-2">
       <div
         className={[
-          // keep compact as-is
           compact
             ? "flex flex-col w-full min-w-0"
-            : // non-compact: allow row layout on md+
-              row
+            : row
               ? "flex flex-col md:flex-row w-full min-w-0"
               : "flex flex-col w-full min-w-0",
         ].join(" ")}
       >
-        {/* Image (optional) */}
         {showImage ? (
           <div
             className={[
               "relative overflow-hidden bg-neutral-100",
-              // compact stays the same
               compact
                 ? "h-28 w-full"
-                : // non-compact: row layout uses fixed-ish width on md+
-                  row
+                : row
                   ? "h-44 w-full md:h-auto md:w-64"
                   : "h-44 w-full",
             ].join(" ")}
           >
-            {meal.imageUrl ? (
+            {image ? (
               <Image
-                src={meal.imageUrl}
-                alt={meal.title}
-                // give Next/Image more realistic sizing (your previous 50x50 is fine but suboptimal)
+                src={image}
+                alt={title}
                 width={800}
                 height={600}
                 className="h-full w-full object-cover"
@@ -113,7 +127,6 @@ const MealOverviewCard = ({ meal, density, onEdit, onRemove, showImage = true, l
           </div>
         ) : null}
 
-        {/* Content */}
         <div
           className={[
             "flex flex-col gap-2 min-w-0 flex-1",
@@ -123,29 +136,26 @@ const MealOverviewCard = ({ meal, density, onEdit, onRemove, showImage = true, l
           <h3
             className={
               compact
-                ? "text-sm font-semibold line-clamp-2 truncate"
+                ? "text-sm font-semibold line-clamp-2"
                 : "text-base font-semibold line-clamp-2"
             }
           >
-            {meal.title}
+            {title}
           </h3>
 
           <div className="min-w-0 flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
-            <span className="truncate">{formatDateHuman(meal.dateISO)}</span>
+            <span className="truncate">{formatDateHuman(meal.dayISO)}</span>
             <span className="truncate">{formatTimeHuman(meal.time24h)}</span>
-            <span className="truncate">{formatPrep(meal.prepMinutes)}</span>
-            <span className="truncate">{meal.type}</span>
+            <span className="truncate">{formatPrep(prep)}</span>
+            <span className="truncate">{type}</span>
+            <span className="truncate">{dish}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <MacroPill
-              label="Calories"
-              value={meal.macros.calories}
-              unit="kcal"
-            />
-            <MacroPill label="Protein" value={meal.macros.protein} unit="g" />
-            <MacroPill label="Carbs" value={meal.macros.carbs} unit="g" />
-            <MacroPill label="Fat" value={meal.macros.fat} unit="g" />
+            <MacroPill label="Calories" value={macros.calories} unit="kcal" />
+            <MacroPill label="Protein" value={macros.protein} unit="g" />
+            <MacroPill label="Carbs" value={macros.carbs} unit="g" />
+            <MacroPill label="Fat" value={macros.fat} unit="g" />
           </div>
 
           <div className="mt-3 flex gap-2 opacity-0 transition group-hover:opacity-100">

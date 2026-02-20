@@ -3,7 +3,7 @@
 import { connectDB } from "@/lib/database/mongodb";
 import { MealPlanDay } from "@/models/models";
 import { SavedRecipeType } from "@/types/recipeTypes";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 function toDayISO(date: Date) {
   const y = date.getFullYear();
@@ -59,7 +59,7 @@ export async function addMealToPlan(input: {
       { upsert: true, new: true },
     );
 
-    revalidatePath("/meal-plan");
+    revalidateTag(`mealplan:${userID}`);
   } catch (err) {
     console.log("addMealToPlan", err);
   }

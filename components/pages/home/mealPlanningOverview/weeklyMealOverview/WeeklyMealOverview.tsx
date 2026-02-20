@@ -1,34 +1,9 @@
 "use client";
 
+import { Meal } from "@/actions/getMealPlanAction";
 import { Clock, Dot, Flame, MoveRight } from "lucide-react";
-import { useMemo, useState } from "react";
-
-type MacroOverview = {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-};
-
-type Meal = {
-  id: string;
-  dateISO: string;
-  timeLabel: string;
-  type: "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Dessert" | "Other";
-  title: string;
-  prepMins?: number;
-  macros: MacroOverview;
-};
-
-type DayMacroTotals = {
-  dateISO: string;
-  label: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  mealsCount: number;
-};
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 function n(v: number) {
   return new Intl.NumberFormat().format(Math.round(v));
@@ -39,18 +14,19 @@ function weekdayLabel(dateISO: string) {
   return d.toLocaleDateString(undefined, { weekday: "short" });
 }
 
-function sumDay(meals: Meal[], dateISO: string): DayMacroTotals {
-  const dayMeals = meals.filter((m) => m.dateISO === dateISO);
+function sumDay(meals: Meal[], dateISO: string) {
+  // ✅ Use dayISO (YYYY-MM-DD) not dateTime (full ISO timestamp)
+  const dayMeals = meals.filter((m) => m.dayISO === dateISO);
 
   const totals = dayMeals.reduce(
     (acc, m) => {
-      acc.calories += m.macros.calories ?? 0;
-      acc.protein += m.macros.protein ?? 0;
-      acc.carbs += m.macros.carbs ?? 0;
-      acc.fat += m.macros.fat ?? 0;
+      acc.calories += m.recipe.macros.calories ?? 0;
+      acc.protein += m.recipe.macros.protein ?? 0;
+      acc.carbs += m.recipe.macros.carbs ?? 0;
+      acc.fat += m.recipe.macros.fat ?? 0;
       return acc;
     },
-    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
   );
 
   return {
@@ -90,18 +66,29 @@ export function WeeklyMealOverview({
 }) {
   const days = useMemo(
     () => weekDates.map((d) => sumDay(meals, d)),
-    [weekDates, meals]
+    [weekDates, meals],
   );
 
   const isWeekEmpty = days.every((d) => d.mealsCount === 0);
 
   const [selectedDayISO, setSelectedDayISO] = useState<string>(
-    () => weekDates[0] ?? ""
+    () => weekDates[0] ?? "",
   );
 
+  // ✅ If weekDates changes (new week fetched), keep selection valid
+  useEffect(() => {
+    if (!selectedDayISO) {
+      setSelectedDayISO(weekDates[0] ?? "");
+      return;
+    }
+    if (weekDates.length && !weekDates.includes(selectedDayISO)) {
+      setSelectedDayISO(weekDates[0] ?? "");
+    }
+  }, [weekDates, selectedDayISO]);
+
   const selectedMeals = useMemo(
-    () => meals.filter((m) => m.dateISO === selectedDayISO),
-    [meals, selectedDayISO]
+    () => meals.filter((m) => m.dayISO === selectedDayISO),
+    [meals, selectedDayISO],
   );
 
   if (isWeekEmpty) {
@@ -137,7 +124,7 @@ export function WeeklyMealOverview({
             <button
               key={d.dateISO}
               type="button"
-              onClick={() => setSelectedDayISO(d.dateISO)} // ✅ onSelectDay inside
+              onClick={() => setSelectedDayISO(d.dateISO)}
               className={[
                 "ui-border-soft rounded-xl p-4 text-left transition-colors",
                 "hover:bg-foreground/5 cursor-pointer hover-anim",
@@ -212,39 +199,49 @@ export function WeeklyMealOverview({
                   {/* Title row */}
                   <div className="flex items-center gap-2 min-w-0">
                     <small className="text-xs rounded-full ui-border-soft px-2 py-0.5 shrink-0">
-                      {m.type}
+                      {m.recipe.type}
                     </small>
-                    <p className="text-sm font-medium truncate">{m.title}</p>
+                    <p className="text-sm font-medium truncate">
+                      {m.recipe.title}
+                    </p>
                   </div>
 
                   {/* Meta row */}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
-                    <small className="text-xs">{m.timeLabel}</small>
+                    <small className="text-xs">{m.time24h}</small>
 
                     <Dot className="size-4" />
 
                     <div className="flex items-center gap-1">
                       <Flame size={16} className="text-red-500" />
                       <small className="text-xs">
-                        {m.macros.calories} kcal
+                        {m.recipe.macros.calories} kcal
                       </small>
                     </div>
 
                     <Dot className="size-4" />
 
-                    {/* ✅ Prep time (always visible) */}
                     <div className="flex items-center gap-1">
                       <Clock size={16} />
-                      <small className="text-xs">{m.prepMins} min</small>
+                      <small className="text-xs">
+                        {m.recipe.readyInMinutes} min
+                      </small>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="flex gap-2 sm:shrink-0">
-                  <button className="btn btn-ghost w-full sm:w-auto">
+                  <Link
+                    href={
+                      m.recipe.type === "saved"
+                        ? `/recipe-search/${m.recipe.recipeID}`
+                        : `/library/${m.recipe.recipeID}`
+                    }
+                    className="btn btn-ghost w-full sm:w-auto"
+                  >
                     View
-                  </button>
+                  </Link>
                   <button className="btn btn-secondary w-full sm:w-auto">
                     Replace
                   </button>

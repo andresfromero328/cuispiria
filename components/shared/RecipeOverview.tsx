@@ -57,12 +57,6 @@ const RecipeOverview = ({ recipe }: Props) => {
             <CookingPot className="opacity-70" />
           </div>
         )}
-
-        {/* Top-left badge (optional but matches RecipeCard vibe) */}
-        {/* <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border bg-background/80 px-2.5 py-1 text-xs shadow-sm backdrop-blur">
-          <UtensilsCrossed size={14} className="opacity-80" />
-          <span className="font-medium">Recipe</span>
-        </div> */}
       </div>
 
       {/* Content */}

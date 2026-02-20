@@ -1,3 +1,4 @@
+// MacroPieChart.tsx
 "use client";
 
 import React, { useMemo } from "react";
@@ -10,8 +11,8 @@ import {
   TooltipItem,
   ChartOptions,
 } from "chart.js";
-
 import { Macros } from "@/types/chartTypes";
+
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface Props {
@@ -34,7 +35,6 @@ export default function MacroPieChart({ macros }: Props) {
       datasets: [
         {
           data: [p, c, f],
-          // keep your existing styling
           backgroundColor: [
             "oklch(58% 0.20 260)",
             "oklch(56% 0.17 150)",
@@ -68,7 +68,8 @@ export default function MacroPieChart({ macros }: Props) {
           titleFont: { size: 14, family: "funnel display, sans-serif" },
           bodyFont: { size: 14, family: "funnel display, sans-serif" },
           callbacks: {
-            label: (ctx: TooltipItem<"pie">) => `${ctx.label}: ${ctx.raw}g`,
+            // ✅ you are passing percents, so show percents
+            label: (ctx: TooltipItem<"pie">) => `${ctx.label}: ${ctx.raw}%`,
           },
           borderWidth: 0,
           displayColors: false,

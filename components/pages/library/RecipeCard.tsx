@@ -41,7 +41,7 @@ function HealthPill({ score }: { score: number }) {
   );
 }
 
-async function onAddMeal(
+export async function onAddMeal(
   recipe: SavedRecipeType | undefined,
   dateISO: Date,
   time24h: string,

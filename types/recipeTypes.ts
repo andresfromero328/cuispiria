@@ -146,3 +146,45 @@ export interface SavedRecipeType {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+/**
+ * Snapshot of a recipe at the time it is added to a meal plan.
+ * This is NOT SavedRecipeType — it is a frozen copy.
+ */
+export interface MealRecipeSnapshot {
+  recipeID: number;
+  type: "saved" | "custom";
+
+  title: string;
+  image: string;
+  readyInMinutes: number;
+  dishTypes: string[];
+
+  macros: {
+    protein: number;
+    carbs: number;
+    fat: number;
+    calories: number;
+  };
+
+  ingredients: Ingredients[];
+
+  aggregateLikes?: number;
+  healthScore?: number;
+}
+
+export interface MealPlanMeal {
+  _id?: string;
+  time24h: string;
+  dateTime: Date;
+  recipe: MealRecipeSnapshot;
+}
+
+export interface MealPlanDay {
+  _id?: string;
+  userID: string;
+  dayISO: string;
+  meals: MealPlanMeal[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}

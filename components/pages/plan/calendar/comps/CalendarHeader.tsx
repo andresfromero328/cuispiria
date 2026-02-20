@@ -2,16 +2,23 @@ import { addDays, endOfWeek, startOfWeek } from "@/lib/calendar/helpers";
 import MonthViewControl from "./MonthViewControl";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-// import WeekAddMealPopOver from "./WeekAddMealPopOver";
+import AddMealPopOver from "@/components/shared/AddMealPopOver";
+import { LibraryData } from "../Calendar";
+import { SavedRecipeType } from "@/types/recipeTypes";
 
 type CalendarView = "month" | "week" | "day";
 
 interface Props {
   view: CalendarView;
   activeDate: Date;
+  library: LibraryData;
+  onAddMeal: (
+    recipe: SavedRecipeType,
+    date: Date,
+    time24h: string,
+  ) => Promise<void> | void;
   onChangeActiveDate: React.Dispatch<React.SetStateAction<Date>>;
   onChangeView: (v: CalendarView) => void;
-  onAddMeal: (dateISO: Date, time24h: string) => void;
 }
 
 function formatMonthYear(d: Date) {
@@ -46,7 +53,8 @@ const CalendarHeader = ({
   activeDate,
   onChangeActiveDate,
   onChangeView,
-  // onAddMeal,
+  library,
+  onAddMeal,
 }: Props) => {
   const title =
     view === "month"
@@ -98,12 +106,17 @@ const CalendarHeader = ({
 
         <MonthViewControl value={view} onChange={onChangeView} />
       </div>
-      {/* <div className="border bg-background shadow-sm px-4 py-2">
-        <WeekAddMealPopOver
+      <div className="border bg-background shadow-sm px-4 py-2">
+        <AddMealPopOver
+          recipe={undefined}
+          library={library}
           defaultDayISO={activeDate}
-          onAdd={(dateISO, time24h) => onAddMeal(dateISO, time24h)}
+          onAdd={async (r, date, time) => {
+            if (!r) return;
+            await onAddMeal(r, date, time);
+          }}
         />
-      </div> */}
+      </div>
     </div>
   );
 };
