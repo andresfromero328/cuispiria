@@ -13,7 +13,7 @@ function SectionHeaderSkeleton({ withRight }: { withRight?: boolean }) {
       </div>
 
       {withRight ? (
-        <Button className="btn bg-calendar-btn" size="sm" disabled>
+        <Button className="btn btn-ghost" size="sm" disabled>
           <Plus size={16} />
           <span className="ml-2">New</span>
         </Button>

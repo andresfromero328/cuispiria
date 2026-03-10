@@ -24,9 +24,15 @@ function serialize(docs: SavedRecipeType[]) {
   >;
 }
 
-export async function getLibraryData(userID: string) {
+export async function getLibraryData(userID: string | undefined) {
   return unstable_cache(
     async () => {
+      if (!userID)
+        return {
+          saved: [],
+          custom: [],
+        };
+
       await connectDB();
       const [saved, custom] = await Promise.all([
         SavedRecipe.find({ userID, type: "saved" })

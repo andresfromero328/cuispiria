@@ -66,7 +66,9 @@ const MealPlanning = ({ meals = [], today }: Props) => {
           <MealPlanningTable meals={todayMeals} />
         </>
       ) : (
-        <p>There are no meals</p>
+        <div className="grid place-content-center p-5">
+          <p>There are no meals for today.</p>
+        </div>
       )}
     </section>
   );

@@ -50,7 +50,6 @@
   --color-chart-fat: var(--chart-fat);
 
   --color-calendar-bg: var(--calendar-bg);
-  --color-calendar-btn: var(--calendar-btn);
 }
 
 :root {
@@ -96,7 +95,6 @@
   --chart-fat: oklch(62% 0.18 55);
 
   --calendar-bg: oklch(91.309% 0.10569 117.019);
-  --calendar-btn: oklch(81.9% 0.10883 82.038);
 }
 
 .dark {

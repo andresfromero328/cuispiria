@@ -1,4 +1,9 @@
-import { Ingredients, SavedRecipeType } from "@/types/recipeTypes";
+import type {
+  SavedRecipeType,
+  MealRecipeSnapshot,
+  MealPlanMeal,
+  MealPlanDay as MealPlanDayType,
+} from "@/types/recipeTypes";
 import mongoose, { Schema } from "mongoose";
 
 //* User Related Schemas */
@@ -81,36 +86,6 @@ const SavedRecipeSchema = new Schema<SavedRecipeType>(
 );
 
 //* MealPlan Related Schemas */
-export interface MealRecipeSnapshot {
-  recipeID: number;
-  type: "saved" | "custom";
-  title: string;
-  image: string;
-  readyInMinutes: number;
-  dishTypes: string[];
-  macros: {
-    protein: number;
-    carbs: number;
-    fat: number;
-    calories: number;
-  };
-  ingredients: Ingredients[];
-  aggregateLikes?: number;
-  healthScore?: number;
-}
-
-export interface MealPlanMeal {
-  time24h: string;
-  dateTime: Date;
-  recipe: MealRecipeSnapshot;
-}
-
-export interface MealPlanDay {
-  userID: string;
-  dayISO: string;
-  meals: MealPlanMeal[];
-}
-
 const MealRecipeSnapshotSchema = new Schema<MealRecipeSnapshot>(
   {
     recipeID: { type: Number, required: true, index: true },
@@ -150,7 +125,7 @@ const MealPlanMealSchema = new Schema<MealPlanMeal>(
   { _id: true },
 );
 
-const MealPlanDaySchema = new Schema<MealPlanDay>(
+const MealPlanDaySchema = new Schema<MealPlanDayType>(
   {
     userID: { type: String, required: true, index: true },
     dayISO: { type: String, required: true, index: true },

@@ -55,12 +55,12 @@ function MacroPill({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+      <span className="text-[11px] text-muted-foreground">
         {label}
       </span>
-      <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+      <span className="text-sm font-semibold text-foreground">
         {Math.round(value)}
-        <span className="ml-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+        <span className="ml-1 text-xs font-medium text-muted-foreground">
           {unit}
         </span>
       </span>
@@ -101,7 +101,7 @@ const MealOverviewCard = ({
         {showImage ? (
           <div
             className={[
-              "relative overflow-hidden bg-neutral-100",
+              "relative overflow-hidden bg-muted",
               compact
                 ? "h-28 w-full"
                 : row
@@ -119,7 +119,7 @@ const MealOverviewCard = ({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <span className="text-sm font-medium text-neutral-400">
+                <span className="text-sm font-medium text-muted-foreground">
                   [image]
                 </span>
               </div>
@@ -143,7 +143,7 @@ const MealOverviewCard = ({
             {title}
           </h3>
 
-          <div className="min-w-0 flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
+          <div className="min-w-0 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="truncate">{formatDateHuman(meal.dayISO)}</span>
             <span className="truncate">{formatTimeHuman(meal.time24h)}</span>
             <span className="truncate">{formatPrep(prep)}</span>
@@ -162,14 +162,14 @@ const MealOverviewCard = ({
             <button
               type="button"
               onClick={onEdit}
-              className="btn rounded-lg px-3 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900/40"
+              className="btn btn-ghost"
             >
               <small>Edit</small>
             </button>
             <button
               type="button"
               onClick={onRemove}
-              className="btn rounded-lg px-3 py-1.5 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900/40"
+              className="btn btn-ghost"
             >
               Remove
             </button>

@@ -72,7 +72,7 @@ function SheetContent({
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="btn btn-primary hover-anim ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs transition-opacity hover:opacity-100">
+        <SheetPrimitive.Close className="btn btn-ghost absolute top-4 right-4 rounded-xs transition-opacity hover:opacity-100">
           <XIcon className="size-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>

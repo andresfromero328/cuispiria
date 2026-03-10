@@ -12,8 +12,8 @@ const MealPlanningPage = async () => {
   const { fromISO, toISO } = getMonthRangeISO(new Date());
 
   const [library, plannedMeals] = await Promise.all([
-    getLibraryData(session!.userID),
-    getMealPlanData(session!.userID, fromISO, toISO),
+    getLibraryData(session?.userID),
+    getMealPlanData(session?.userID, fromISO, toISO),
   ]);
 
   return (

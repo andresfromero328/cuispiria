@@ -18,9 +18,10 @@ const MonthViewControl = ({ value, onChange }: Props) => {
           <Button
             key={it}
             onClick={() => onChange(it)}
-            className={["btn bg-calendar-btn", active && "bg-primary"].join(
-              " "
-            )}
+            className={[
+              "btn",
+              active ? "btn-primary translate-none brightness-90" : "btn-ghost",
+            ].join(" ")}
           >
             {it}
           </Button>

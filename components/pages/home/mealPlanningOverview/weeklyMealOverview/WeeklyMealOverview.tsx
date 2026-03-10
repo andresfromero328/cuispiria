@@ -75,7 +75,6 @@ export function WeeklyMealOverview({
     () => weekDates[0] ?? "",
   );
 
-  // ✅ If weekDates changes (new week fetched), keep selection valid
   useEffect(() => {
     if (!selectedDayISO) {
       setSelectedDayISO(weekDates[0] ?? "");
@@ -114,7 +113,6 @@ export function WeeklyMealOverview({
         <small>Daily macro totals from all meals across the week.</small>
       </header>
 
-      {/* Day cards */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {days.map((d) => {
           const empty = d.mealsCount === 0;
@@ -168,7 +166,6 @@ export function WeeklyMealOverview({
         })}
       </div>
 
-      {/* Selected day detail */}
       <div className="mt-4 ui-border-soft rounded-xl p-4">
         <div className="flex items-start justify-between gap-4">
           <div>

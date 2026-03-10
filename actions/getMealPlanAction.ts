@@ -3,8 +3,8 @@
 
 import { unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/database/mongodb";
-import { MealPlanDay, MealPlanMeal } from "@/models/models";
-import type { MealRecipeSnapshot } from "@/types/recipeTypes";
+import { MealPlanDay } from "@/models/models";
+import type { MealPlanMeal, MealRecipeSnapshot } from "@/types/recipeTypes";
 import { Types } from "mongoose";
 
 export interface Meal {
@@ -18,10 +18,12 @@ export interface Meal {
 type LeanMeal = MealPlanMeal & { _id: Types.ObjectId };
 
 export async function getMealPlanData(
-  userID: string,
+  userID: string | undefined,
   fromISO: string,
   toISO: string,
 ) {
+  if (!userID) return [];
+
   const cacheKey = `mealplan:${userID}:${fromISO}:${toISO}`;
 
   return unstable_cache(

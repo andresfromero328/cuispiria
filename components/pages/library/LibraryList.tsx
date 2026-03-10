@@ -25,7 +25,7 @@ const LibraryList = ({ saved, custom }: Props) => {
             </div>
 
             <select
-              className="h-10 rounded-md border bg-background px-3 text-sm"
+              className="h-10 rounded-md border bg-background outline-none cursor-pointer px-3 text-sm"
               defaultValue="recent"
             >
               <option value="recent">Recent</option>
@@ -47,7 +47,7 @@ const LibraryList = ({ saved, custom }: Props) => {
           title="Custom Recipes"
           count={custom.length}
           right={
-            <Button className="btn bg-calendar-btn" size="sm">
+            <Button className="btn btn-ghost" size="sm">
               <Plus size={16} />
               <span className="ml-2">New</span>
             </Button>

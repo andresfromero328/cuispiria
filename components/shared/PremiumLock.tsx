@@ -29,7 +29,7 @@ const PremiumLock = ({ label }: Props) => {
               redirect: true,
             })
           }
-          className=" btn btn-primary px-4 py-2 text-sm font-medium"
+          className="btn btn-primary"
         >
           Sign in
         </Button>

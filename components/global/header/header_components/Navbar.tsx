@@ -28,7 +28,7 @@ const Navbar = ({ session }: Props) => {
       {session ? (
         <Button
           onClick={() => signOut()}
-          className=" btn btn-primary px-4 py-2 text-sm font-medium"
+          className="btn btn-primary"
         >
           Sign out
         </Button>
@@ -40,7 +40,7 @@ const Navbar = ({ session }: Props) => {
               redirect: true,
             })
           }
-          className=" btn btn-primary px-4 py-2 text-sm font-medium"
+          className="btn btn-primary"
         >
           Sign in
         </Button>

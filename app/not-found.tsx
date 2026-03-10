@@ -17,7 +17,7 @@ const NotFound = () => {
         </p>
 
         <div className="mt-2 flex flex-col sm:flex-row gap-2 justify-center">
-          <Button asChild className="btn bg-calendar-btn">
+          <Button asChild className="btn btn-primary">
             <Link href="/">Go home</Link>
           </Button>
         </div>

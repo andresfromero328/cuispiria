@@ -56,7 +56,7 @@ export default async function Home() {
   const today = toDateISO(new Date());
   const start = toDateISO(startOfWeek(new Date()));
   const end = toDateISO(endOfWeek(new Date()));
-  const plannedMeals = await getMealPlanData(session!.userID, start, end);
+  const plannedMeals = await getMealPlanData(session?.userID, start, end);
 
   return (
     <main className="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-5">

@@ -93,13 +93,13 @@ const CalendarHeader = ({
         </div>
 
         <div className="flex-1 inline-flex items-center gap-2">
-          <Button className="btn bg-calendar-btn" onClick={goPrev}>
+          <Button className="btn btn-ghost" onClick={goPrev}>
             <ArrowLeft size={18} />
           </Button>
-          <Button className="btn bg-calendar-btn" onClick={goToday}>
+          <Button className="btn btn-ghost" onClick={goToday}>
             <small>Today</small>
           </Button>
-          <Button className="btn bg-calendar-btn" onClick={goNext}>
+          <Button className="btn btn-ghost" onClick={goNext}>
             <ArrowRight size={18} />
           </Button>
         </div>
