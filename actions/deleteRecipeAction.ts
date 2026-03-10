@@ -25,8 +25,9 @@ export async function deleteLibraryRecipe({
       userID,
     });
     revalidateTag(`library:${userID}`);
-    return { ok: true, deletedCount: res.deletedCount };
+    return { ok: true as const, deletedCount: res.deletedCount };
   } catch (err) {
-    console.log("DeletRecipe", err);
+    console.error("deleteLibraryRecipe:", err);
+    return { ok: false as const, reason: "db_error" as const };
   }
 }

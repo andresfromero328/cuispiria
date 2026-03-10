@@ -60,7 +60,9 @@ export async function addMealToPlan(input: {
     );
 
     revalidateTag(`mealplan:${userID}`);
+    return { ok: true as const };
   } catch (err) {
-    console.log("addMealToPlan", err);
+    console.error("addMealToPlan:", err);
+    return { ok: false as const, reason: "db_error" as const };
   }
 }

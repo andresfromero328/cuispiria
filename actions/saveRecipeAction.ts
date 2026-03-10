@@ -74,9 +74,9 @@ export async function saveRecipeAction({ userID, recipe }: SaveRecipeArgs) {
       { new: true, upsert: true, runValidators: true },
     ).lean();
     revalidateTag(`library:${userID}`);
-    return { ok: true };
+    return { ok: true as const };
   } catch (err) {
-    console.log("SaveRecipeAction:", err);
-    throw err;
+    console.error("SaveRecipeAction:", err);
+    return { ok: false as const, reason: "db_error" as const };
   }
 }

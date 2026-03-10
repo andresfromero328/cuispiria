@@ -13,10 +13,14 @@ interface Props {
 
 const RecipeHandles = ({ userID, recipe, isSaved }: Props) => {
   const handleSaveRecipe = async () => {
-    if (userID && recipe) {
-      if (isSaved) {
-        await deleteLibraryRecipe({ userID, savedRecipeId: recipe.id });
-      } else await saveRecipeAction({ userID, recipe });
+    if (!userID || !recipe) return;
+
+    const result = isSaved
+      ? await deleteLibraryRecipe({ userID, savedRecipeId: recipe.id })
+      : await saveRecipeAction({ userID, recipe });
+
+    if (!result.ok) {
+      console.error("Failed to save/remove recipe:", result.reason);
     }
   };
 

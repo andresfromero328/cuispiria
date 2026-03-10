@@ -12,24 +12,30 @@ export async function removeMealFromPlan({
   userID: string;
   mealId: string;
 }) {
-  await connectDB();
-
   if (!Types.ObjectId.isValid(mealId)) throw new Error("Invalid mealId");
 
-  const _mealId = new Types.ObjectId(mealId);
+  try {
+    await connectDB();
 
-  const updatedDay = await MealPlanDay.findOneAndUpdate(
-    { userID, "meals._id": _mealId },
-    { $pull: { meals: { _id: _mealId } } },
-    { new: true },
-  ).lean();
+    const _mealId = new Types.ObjectId(mealId);
 
-  if (!updatedDay) return { ok: false as const, reason: "not_found" as const };
+    const updatedDay = await MealPlanDay.findOneAndUpdate(
+      { userID, "meals._id": _mealId },
+      { $pull: { meals: { _id: _mealId } } },
+      { new: true },
+    ).lean();
 
-  if (Array.isArray(updatedDay.meals) && updatedDay.meals.length === 0) {
-    await MealPlanDay.deleteOne({ _id: updatedDay._id, userID });
+    if (!updatedDay)
+      return { ok: false as const, reason: "not_found" as const };
+
+    if (Array.isArray(updatedDay.meals) && updatedDay.meals.length === 0) {
+      await MealPlanDay.deleteOne({ _id: updatedDay._id, userID });
+    }
+
+    revalidateTag(`mealplan:${userID}`);
+    return { ok: true as const };
+  } catch (err) {
+    console.error("removeMealFromPlan:", err);
+    return { ok: false as const, reason: "db_error" as const };
   }
-
-  revalidateTag(`mealplan:${userID}`);
-  return { ok: true as const };
 }

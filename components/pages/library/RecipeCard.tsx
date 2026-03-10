@@ -62,10 +62,14 @@ const RecipeCard = ({ recipe }: Props) => {
 
   const handleRemoveRecipe = () => {
     startTransition(async () => {
-      await deleteLibraryRecipe({
+      const result = await deleteLibraryRecipe({
         userID: recipe.userID,
         savedRecipeId: recipe.recipeID,
       });
+      if (!result.ok) {
+        console.error("Failed to remove recipe:", result.reason);
+        return;
+      }
       router.refresh();
     });
   };
